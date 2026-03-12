@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/inconshreveable/go-update"
@@ -19,11 +22,18 @@ func doUpdate(url string) error {
 		return err
 	}
 	defer resp.Body.Close()
+
 	err = update.Apply(resp.Body, update.Options{})
 	if err != nil {
-		// error handling
+		return err
 	}
-	return err
+
+	fmt.Println("Program güncellendi. Yeniden başlatılıyor...")
+
+	restartProgram()
+
+	os.Exit(0)
+	return nil
 }
 
 func getLatestVersion() string {
@@ -45,4 +55,35 @@ func isUploadAvailable() bool {
 	latest := getLatestVersion()
 
 	return latest != Version
+}
+
+func restartProgram() {
+	exe, err := os.Executable()
+	if err != nil {
+		fmt.Println("Exe yolu alınamadı:", err)
+		return
+	}
+
+	cmd := exec.Command(exe)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	err = cmd.Start()
+
+	if err != nil {
+		fmt.Println("Program yeniden başlatılamadı:", err)
+		return
+	}
+
+	os.Exit(0)
+}
+
+func cleanupOldExe() {
+	exe, _ := os.Executable()
+	dir := filepath.Dir(exe)
+	base := filepath.Base(exe)
+
+	old := filepath.Join(dir, "."+base+".old")
+	os.Remove(old)
 }

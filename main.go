@@ -14,6 +14,7 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
+var canClose = make(chan bool)
 var projectPath, _ = os.Getwd()
 var fileName string = "unknown"
 var file *excelize.File
@@ -22,12 +23,13 @@ var err error
 var z, n, y int
 
 const (
-	Version = "1.1.0"
+	Version = "1.1.1"
 	User    = "Ouzzii"
 	Repo    = "Mukerrer-Inceleme"
 )
 
 func init() {
+
 	target := time.Date(2026, time.April, 10, 0, 0, 0, 0, time.Local)
 	if time.Now().After(target) {
 		os.Exit(1)
@@ -237,6 +239,8 @@ func Closefunc(err error) {
 		debug.PrintStack()
 	}
 
+	cleanupOldExe()
+
 	// Geri sayım
 	for i := 10; i > 0; i-- {
 		fmt.Printf("Program %d saniye sonra kapanacaktır\n", i)
@@ -244,4 +248,3 @@ func Closefunc(err error) {
 	}
 	os.Exit(1)
 }
-
