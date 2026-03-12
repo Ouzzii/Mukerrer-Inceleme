@@ -22,7 +22,7 @@ var err error
 var z, n, y int
 
 const (
-	Version = "1.0.0"
+	Version = "1.1.0"
 	User    = "Ouzzii"
 	Repo    = "Mukerrer-Inceleme"
 )
@@ -244,3 +244,4 @@ func Closefunc(err error) {
 	}
 	os.Exit(1)
 }
+
