@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/inconshreveable/go-update"
+	"github.com/schollz/progressbar/v3"
 )
 
 type Release struct {
@@ -17,22 +18,42 @@ type Release struct {
 }
 
 func doUpdate(url string) error {
+
 	resp, err := http.Get(url)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	err = update.Apply(resp.Body, update.Options{})
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("download failed: %s", resp.Status)
+	}
+
+	size := resp.ContentLength
+
+	bar := progressbar.NewOptions64(
+		size,
+		progressbar.OptionSetDescription("Güncelleme indiriliyor"),
+		progressbar.OptionShowBytes(true),
+		progressbar.OptionSetWidth(40),
+		progressbar.OptionSetPredictTime(true),
+		progressbar.OptionClearOnFinish(),
+	)
+
+	reader := progressbar.NewReader(resp.Body, bar)
+
+	err = update.Apply(&reader, update.Options{})
+
 	if err != nil {
+		Closefunc(err)
 		return err
 	}
 
-	fmt.Println("Program güncellendi. Yeniden başlatılıyor...")
-
+	fmt.Println("\nProgram güncellendi. Yeniden başlatılıyor...")
+	cleanupOldExe()
 	restartProgram()
-
 	os.Exit(0)
+
 	return nil
 }
 
@@ -53,7 +74,6 @@ func getLatestVersion() string {
 
 func isUploadAvailable() bool {
 	latest := getLatestVersion()
-
 	return latest != Version
 }
 

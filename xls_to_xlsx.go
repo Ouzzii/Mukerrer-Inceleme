@@ -15,6 +15,7 @@ func convertXLS(input, output string) error {
 
 	xlsFile, err := xls.Open(input, "utf-8")
 	if err != nil {
+		Closefunc(err)
 		return err
 	}
 
@@ -57,6 +58,7 @@ func convertXLS(input, output string) error {
 
 	err = f.SaveAs(output)
 	if err != nil {
+		Closefunc(err)
 		return err
 	}
 
@@ -66,10 +68,9 @@ func convertXLS(input, output string) error {
 func convertHTML(input, output string) error {
 	data, err := os.ReadFile(input)
 	if err != nil {
+		Closefunc(err)
 		return err
 	}
-
-	// Regex ile <x:Name> sayfa adını al
 	re := regexp.MustCompile(`<x:Name>(.*?)</x:Name>`)
 	matches := re.FindAllStringSubmatch(string(data), -1)
 
